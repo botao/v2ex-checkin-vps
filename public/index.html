@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>控制台 · V2EX 自动签到</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo small">V</span><span>V2EX 自动签到</span></div>
+    <div class="top-actions"><span class="schedule" id="schedule">读取计划中</span><button class="button ghost" id="logout">退出</button></div>
+  </header>
+  <main class="container">
+    <section class="page-head">
+      <div><p class="eyebrow">OPERATIONS</p><h1>账号与执行状态</h1></div>
+      <div class="head-actions"><button class="button" id="run-all">全部签到</button><button class="button primary" id="add-account">添加账号</button></div>
+    </section>
+    <div class="notice" id="notice" hidden></div>
+    <section id="job-panel" class="job-panel" aria-live="polite" hidden>
+      <div class="section-head"><h2 id="job-title">签到任务</h2><span id="job-count"></span></div>
+      <progress id="job-progress" max="1" value="0" aria-label="签到进度"></progress>
+      <p id="job-description" class="subtle"></p>
+    </section>
+    <section class="schedule-strip" aria-label="自动签到计划"><span>下次自动签到</span><time id="next-run">读取中</time><span id="timezone" class="subtle"></span></section>
+    <section class="metrics" aria-label="运行概览">
+      <div><strong id="account-count">0</strong><span>已配置账号</span></div>
+      <div title="根据保留的最近 100 条记录，按配置时区及账号去重统计"><strong id="success-count">0 / 0</strong><span>今日完成 / 启用账号</span></div>
+      <div><strong id="attention-count">0</strong><span>需处理账号</span></div>
+      <div><strong id="last-run" class="metric-time">暂无</strong><span>最近执行</span></div>
+    </section>
+    <section class="content-section">
+      <div class="section-head"><h2>账号</h2><input type="search" id="account-search" aria-label="搜索用户名" placeholder="搜索用户名" maxlength="64"></div>
+      <div class="table-shell" id="accounts"><div class="empty">加载中</div></div>
+    </section>
+    <section class="content-section">
+      <div class="section-head"><h2>最近记录</h2><div class="record-actions"><select id="result-filter" aria-label="筛选签到结果"><option value="all">全部结果</option><option value="checked_in">签到成功</option><option value="already_checked_in">已领取</option><option value="failed">失败</option></select><button class="button ghost" id="refresh">刷新</button></div></div>
+      <div class="table-shell" id="history"><div class="empty">加载中</div></div>
+    </section>
+  </main>
+  <dialog id="account-dialog">
+    <form id="account-form">
+      <div class="dialog-head"><div><p class="eyebrow">ACCOUNT</p><h2 id="dialog-title">添加账号</h2></div><button class="icon-button" type="button" data-close aria-label="关闭">×</button></div>
+      <div class="dialog-body">
+        <div class="notice" id="form-notice" role="status" hidden></div>
+        <input type="hidden" name="id">
+        <label class="field"><span>V2EX 用户名</span><input name="username" maxlength="64" required autocomplete="username"></label>
+        <label class="toggle"><input name="enabled" type="checkbox" checked><span>参与每日自动签到</span></label>
+      </div>
+      <div class="dialog-foot"><button class="button" type="button" data-close>取消</button><button class="button primary" type="submit">保存账号</button></div>
+    </form>
+  </dialog>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

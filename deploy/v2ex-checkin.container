@@ -1,0 +1,29 @@
+[Unit]
+Description=V2EX automated daily check-in
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+Image=localhost/v2ex-checkin-vps:local
+Pull=never
+ContainerName=v2ex-checkin-vps
+EnvironmentFile=/opt/v2ex-checkin-vps/.env
+PublishPort=127.0.0.1:3001:3000
+Volume=v2ex-checkin-data:/app/data
+NoNewPrivileges=true
+HealthCmd=/usr/bin/curl --fail --silent --show-error http://127.0.0.1:3000/health
+HealthInterval=30s
+HealthTimeout=5s
+HealthRetries=3
+HealthStartPeriod=15s
+HealthOnFailure=kill
+PodmanArgs=--init --shm-size=1g --memory=1g --cpus=1 --stop-timeout=90
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=900
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target

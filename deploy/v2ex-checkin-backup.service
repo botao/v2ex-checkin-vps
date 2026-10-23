@@ -1,0 +1,16 @@
+[Unit]
+Description=Back up V2EX encrypted data and matching configuration
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+ExecStart=/usr/local/libexec/v2ex-checkin/node /opt/v2ex-checkin-vps/dist/src/backup.js create /opt/v2ex-checkin-vps/.env /var/lib/containers/storage/volumes/v2ex-checkin-data/_data/store.enc /var/backups/v2ex-checkin
+TimeoutStartSec=120
+Nice=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/backups/v2ex-checkin

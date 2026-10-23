@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>V2EX 登录 · 自动签到</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar"><div class="brand"><span class="logo small">V</span><span>V2EX 自动签到</span></div><a class="button ghost" href="/">控制台</a></header>
+  <main class="account-login-container">
+    <div class="page-head"><div><h1>V2EX 登录</h1><p id="browser-title" class="subtle"></p></div><button class="button ghost" id="browser-cancel" disabled>取消</button></div>
+    <p id="browser-status" class="subtle" role="status">正在加载登录表单</p>
+    <div class="notice" id="browser-notice" role="alert" hidden></div>
+    <form id="v2ex-login-form" autocomplete="off" hidden>
+      <fieldset id="credentials-fields">
+        <label class="field"><span>V2EX 用户名</span><input name="username" autocomplete="username" maxlength="64" required autocapitalize="off" spellcheck="false"></label>
+        <label class="field"><span>V2EX 密码</span><input name="password" type="password" autocomplete="off" maxlength="1024" required></label>
+        <div class="captcha-row"><img id="captcha-image" alt="V2EX 图片验证码" width="240" height="80"><button class="icon-button" id="captcha-refresh" type="button" title="刷新验证码" aria-label="刷新验证码">&#8635;</button></div>
+        <label class="field"><span>图片验证码</span><input name="captcha" autocomplete="off" maxlength="32" required autocapitalize="off" spellcheck="false"></label>
+      </fieldset>
+      <fieldset id="otp-fields" hidden disabled>
+        <label class="field"><span>两步验证动态码</span><input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required></label>
+      </fieldset>
+      <button class="button primary wide" id="login-submit" type="submit">登录</button>
+    </form>
+    <div class="login-result" id="login-complete" hidden><a class="button primary" href="/">返回控制台</a></div>
+    <button class="button" id="login-reconnect" type="button" hidden>重新加载</button>
+  </main>
+  <script src="/browser.js" type="module"></script>
+</body>
+</html>

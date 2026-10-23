@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    stop_grace_period: 90s
+    init: true
+    env_file: .env
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - checkin-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 1gb
+    mem_limit: 1g
+    cpus: 1.0
+volumes:
+  checkin-data:

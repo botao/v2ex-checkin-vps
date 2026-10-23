@@ -1,0 +1,17 @@
+node_modules/
+dist/
+data/
+.env
+.env.*
+!.env.example
+playwright-report/
+test-results/
+*.log
+.DS_Store
+.playwright-cli/
+output/
+coverage/
+*.enc
+*.backup
+*.pem
+*.key
