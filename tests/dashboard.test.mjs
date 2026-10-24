@@ -50,3 +50,21 @@ test("empty and invalid records do not break the dashboard", () => {
   assert.equal(formatTime("invalid", "UTC"), "暂无");
   assert.notEqual(formatTime("2026-10-23T12:00:00Z", "UTC"), formatTime("2026-10-23T12:00:00Z", "Asia/Hong_Kong"));
 });
+
+test("previous reward day cannot count as today's completion after local midnight", () => {
+  const history = [{ ...record("one", "2026-10-23T17:00:00Z"), rewardDate: "2026-10-23" }];
+  const summary = summarizeAccounts(accounts, history, "Asia/Hong_Kong", new Date("2026-10-24T00:40:00Z"));
+  assert.equal(summary.completed, 0);
+  assert.equal(summary.accounts[0].dailyState, "pending");
+});
+
+test("actual reward date counts independently from execution date; legacy dates stay unknown", () => {
+  const history = [
+    { ...record("one", "2026-10-23T15:00:00Z"), rewardDate: "2026-10-24" },
+    record("two", "2026-10-24T00:20:00Z"),
+    { ...record("three", "2026-10-24T00:20:00Z"), rewardDate: "invalid" }
+  ];
+  const summary = summarizeAccounts(accounts, history, "Asia/Hong_Kong", new Date("2026-10-24T00:40:00Z"));
+  assert.equal(summary.completed, 1);
+  assert.deepEqual(summary.accounts.map(a => a.todayComplete), [true, false, false, false]);
+});
