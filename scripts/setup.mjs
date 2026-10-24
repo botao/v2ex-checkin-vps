@@ -15,7 +15,7 @@ export async function initializeEnv(directory) {
     await file.writeFile([
       `ADMIN_PASSWORD=${randomBytes(24).toString("base64url")}`,
       `MASTER_KEY=${randomBytes(32).toString("base64")}`,
-      "PORT=3000", "TZ=Asia/Hong_Kong", "CHECKIN_CRON=17 9 * * *", "TRUST_PROXY=1", ""
+      "PORT=3000", "TZ=Asia/Hong_Kong", "CHECKIN_CRON=10 8 * * *", "TRUST_PROXY=1", ""
     ].join("\n"));
   } finally { await file.close(); }
   return true;

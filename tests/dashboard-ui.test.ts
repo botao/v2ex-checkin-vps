@@ -12,10 +12,14 @@ for (const width of [1440, 390, 320]) {
       page.on("pageerror", error => errors.push(error.message));
       let payload: unknown;
       const accounts = [{ id: "saved", username: "alice", enabled: true, browserSavedAt: "2026-10-23T15:00:00Z" }, { id: "pending", username: "bob", enabled: false }];
+      const history = [
+        { accountId: "saved", username: "alice", ok: true, status: "already_checked_in", message: "奖励已领取", checkedAt: "2026-10-23T17:00:00Z", rewardDate: "2026-10-23" },
+        { accountId: "pending", username: "bob", ok: true, status: "already_checked_in", message: "旧记录", checkedAt: "2026-10-23T17:00:00Z" }
+      ];
       await page.route("http://dashboard.test/**", async route => {
         const request = route.request();
         const pathname = new URL(request.url()).pathname;
-        if (pathname === "/api/state") { await route.fulfill({ json: { accounts, history: [], csrf: "test", timezone: "Asia/Hong_Kong", schedule: "17 9 * * *", nextRun: null } }); return; }
+        if (pathname === "/api/state") { await route.fulfill({ json: { accounts, history, csrf: "test", timezone: "Asia/Hong_Kong", schedule: "10 8 * * *", nextRun: null } }); return; }
         if (pathname === "/api/accounts/saved") { payload = request.postDataJSON(); await route.fulfill({ json: { account: accounts[0] } }); return; }
         if (pathname === "/api/accounts") { payload = request.postDataJSON(); await route.fulfill({ status: 201, json: { account: { id: "new" } } }); return; }
         if (pathname === "/browser/new") { await route.fulfill({ contentType: "text/html", body: "<h1>Login</h1>" }); return; }
@@ -26,6 +30,11 @@ for (const width of [1440, 390, 320]) {
       await page.goto("http://dashboard.test/");
       await page.getByText("浏览器 · 会话已保存", { exact: true }).waitFor();
       await page.getByText("浏览器 · 待登录", { exact: true }).waitFor();
+      assert.equal(await page.locator("#history th").allTextContents().then(labels => labels.includes("奖励日期")), true);
+      assert.deepEqual(await page.locator('#history [data-label="奖励日期"]').allTextContents(), ["2026-10-23", "未记录"]);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      await mkdir("output/playwright", { recursive: true });
+      await page.screenshot({ path: `output/playwright/reward-date-${width}.png`, fullPage: true });
       await page.locator('[data-edit="saved"]').click();
       await page.getByRole("button", { name: "保存账号", exact: true }).click();
       await page.locator("#account-dialog").waitFor({ state: "hidden" });

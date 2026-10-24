@@ -33,6 +33,7 @@ export interface CheckinResult {
   status: CheckinStatus;
   message: string;
   checkedAt: string;
+  rewardDate?: string;
   retryable?: boolean;
   attempts?: number;
 }

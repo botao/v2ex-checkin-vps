@@ -1,4 +1,4 @@
-import { formatTime as formatInTimezone, summarizeAccounts } from "/dashboard.js";
+import { formatTime as formatInTimezone, formatRewardDate, summarizeAccounts } from "/dashboard.js";
 
 const $ = (selector) => document.querySelector(selector);
 const dialog = $("#account-dialog");
@@ -98,8 +98,8 @@ function renderTables(data) {
   const accountRows = selectedAccounts.map((account) => `<tr><td data-label="用户名"><strong title="更新时间：${escapeHtml(formatTime(account.updatedAt))}">${escapeHtml(account.username)}</strong><div class="subtle account-mode">${account.browserSavedAt ? "浏览器 · 会话已保存" : "浏览器 · 待登录"}</div></td><td data-label="自动任务"><span class="status ${account.enabled ? "ok" : "muted"}">${account.enabled ? "已启用" : "已停用"}</span></td><td data-label="今日状态"><span class="status ${account.dailyState === "attention" ? "fail" : account.dailyState === "complete" ? "ok" : "muted"}" title="${escapeHtml(account.latestResult?.message || "暂无执行记录")}">${labels[account.dailyState]}</span></td><td data-label="最近执行" class="subtle">${formatTime(account.latestResult?.checkedAt)}</td><td data-label="操作"><div class="row-actions"><button class="button compact" data-run="${account.id}">签到</button><a class="button compact" href="/browser/${encodeURIComponent(account.id)}">浏览器登录</a><button class="button compact" data-edit="${account.id}">编辑</button><button class="button compact danger" data-delete="${account.id}">删除</button></div></td></tr>`).join("");
   $("#accounts").innerHTML = selectedAccounts.length ? `<table><thead><tr><th>用户名</th><th>自动任务</th><th>今日状态</th><th>最近执行</th><th></th></tr></thead><tbody>${accountRows}</tbody></table>` : `<div class="empty">${data.accounts.length ? "没有匹配的账号" : "尚未添加账号"}</div>`;
 
-  const historyRows = selectedHistory.map((item) => `<tr><td data-label="账号">${escapeHtml(item.username)}</td><td data-label="结果"><span class="status ${item.ok ? "ok" : "fail"}">${statusLabel(item)}</span></td><td data-label="说明" class="message">${escapeHtml(item.message)}</td><td data-label="时间" class="subtle">${formatTime(item.checkedAt)}</td></tr>`).join("");
-  $("#history").innerHTML = selectedHistory.length ? `<table><thead><tr><th>账号</th><th>结果</th><th>说明</th><th>时间</th></tr></thead><tbody>${historyRows}</tbody></table>` : `<div class="empty">${data.history.length ? "没有匹配的记录" : "暂无执行记录"}</div>`;
+  const historyRows = selectedHistory.map((item) => `<tr><td data-label="账号">${escapeHtml(item.username)}</td><td data-label="结果"><span class="status ${item.ok ? "ok" : "fail"}">${statusLabel(item)}</span></td><td data-label="奖励日期" class="subtle">${escapeHtml(formatRewardDate(item.rewardDate))}</td><td data-label="说明" class="message">${escapeHtml(item.message)}</td><td data-label="执行时间" class="subtle">${formatTime(item.checkedAt)}</td></tr>`).join("");
+  $("#history").innerHTML = selectedHistory.length ? `<table><thead><tr><th>账号</th><th>结果</th><th>奖励日期</th><th>说明</th><th>执行时间</th></tr></thead><tbody>${historyRows}</tbody></table>` : `<div class="empty">${data.history.length ? "没有匹配的记录" : "暂无执行记录"}</div>`;
 }
 
 for (const [selector, event] of [["#account-search", "input"], ["#result-filter", "change"]]) {

@@ -3,6 +3,16 @@ import type { Account, CheckinResult, CheckinStatus } from "./types.js";
 
 const MISSION_URL = "https://www.v2ex.com/mission/daily";
 
+export function extractRewardDate(text: string): string | undefined {
+  const dates = [...text.matchAll(/(?:每日登录奖励\s*|v2ex:member:\d+:)(\d{8})(?!\d)/g)].map(match => match[1]!);
+  const unique = new Set(dates);
+  if (unique.size !== 1) return undefined;
+  const value = dates[0]!;
+  const date = `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
+  const timestamp = Date.parse(`${date}T00:00:00Z`);
+  return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === date ? date : undefined;
+}
+
 export function isTransientNetworkError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
   return /^page\.(?:goto|waitForNavigation): Timeout \d+ms exceeded\./.test(error.message)
@@ -29,19 +39,26 @@ function httpFailure(account: Account, status: number | undefined): CheckinResul
 
 export async function pageResult(context: BrowserContext, account: Account): Promise<CheckinResult> {
   const page = await context.newPage();
+  let rewardDate: string | undefined;
+  const report: typeof result = (...args) => ({
+    ...result(...args),
+    message: args[3].replace("今日奖励", rewardDate ? `${rewardDate} 奖励` : "奖励"),
+    ...(rewardDate ? { rewardDate } : {})
+  });
   try {
   const response = await page.goto(MISSION_URL, { waitUntil: "domcontentloaded", timeout: 45_000 });
   await page.waitForTimeout(1_200);
   let state = classifyMission(await page.content());
 
-  if (state === "challenge") return result(account, false, "failed", "V2EX 要求完成浏览器验证，请在 VPS 检查网络出口");
-  if (state === "auth_required") return result(account, false, "failed", "浏览器会话已失效，请重新登录并保存浏览器会话");
-  if (state === "browser_rejected") return result(account, false, "failed", "V2EX 浏览器会话被拒绝：网站要求使用干净安装的浏览器，请手动检查该账号，不自动重试");
+  if (state === "challenge") return report(account, false, "failed", "V2EX 要求完成浏览器验证，请在 VPS 检查网络出口");
+  if (state === "auth_required") return report(account, false, "failed", "浏览器会话已失效，请重新登录并保存浏览器会话");
+  if (state === "browser_rejected") return report(account, false, "failed", "V2EX 浏览器会话被拒绝：网站要求使用干净安装的浏览器，请手动检查该账号，不自动重试");
   const initialFailure = httpFailure(account, response?.status());
   if (initialFailure) return initialFailure;
-  if (state === "already_checked_in") return result(account, true, state, "今日奖励已领取，无需重复签到");
+  rewardDate = extractRewardDate(await page.locator("#Main").innerText().catch(() => ""));
+  if (state === "already_checked_in") return report(account, true, state, "今日奖励已领取，无需重复签到");
   if (state !== "ready") {
-    return result(account, false, "failed", "未找到签到入口，V2EX 页面可能已变更");
+    return report(account, false, "failed", "未找到签到入口，V2EX 页面可能已变更");
   }
 
   const redeem = page.locator('a[href*="/mission/daily/redeem?once="], input[onclick*="/mission/daily/redeem?once="]').first();
@@ -51,16 +68,17 @@ export async function pageResult(context: BrowserContext, account: Account): Pro
   ]);
   await page.waitForTimeout(800);
   state = classifyMission(await page.content());
-  if (state === "challenge") return result(account, false, "failed", "V2EX 要求完成浏览器验证，请检查 VPS 网络出口后再试");
-  if (state === "auth_required") return result(account, false, "failed", "V2EX 未接受当前登录状态，请重新登录并保存浏览器会话");
-  if (state === "browser_rejected") return result(account, false, "failed", "V2EX 浏览器会话被拒绝：网站要求使用干净安装的浏览器，请手动检查该账号，不自动重试");
+  if (state === "challenge") return report(account, false, "failed", "V2EX 要求完成浏览器验证，请检查 VPS 网络出口后再试");
+  if (state === "auth_required") return report(account, false, "failed", "V2EX 未接受当前登录状态，请重新登录并保存浏览器会话");
+  if (state === "browser_rejected") return report(account, false, "failed", "V2EX 浏览器会话被拒绝：网站要求使用干净安装的浏览器，请手动检查该账号，不自动重试");
   const redeemFailure = httpFailure(account, redeemResponse?.status());
   if (redeemFailure) return redeemFailure;
+  rewardDate = extractRewardDate(await page.locator("#Main").innerText().catch(() => "")) ?? rewardDate;
   const text = await page.locator("body").innerText().catch(() => "");
   if (state === "already_checked_in" || /已成功领取每日登录奖励|获得了?\s*\d+\s*铜币/i.test(text)) {
-    return result(account, true, "checked_in", "签到成功，今日奖励已领取");
+    return report(account, true, "checked_in", "签到成功，今日奖励已领取");
   }
-  return result(account, false, "failed", "V2EX 未确认签到成功，请稍后重试");
+  return report(account, false, "failed", "V2EX 未确认签到成功，请稍后重试");
   } finally { await page.close(); }
 }
 

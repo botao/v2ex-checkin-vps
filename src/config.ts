@@ -11,7 +11,7 @@ const schema = z.object({
   TZ: z.string().default("Asia/Hong_Kong").refine(value => {
     try { new Intl.DateTimeFormat("en", { timeZone: value }); return true; } catch { return false; }
   }, "TZ must be a valid IANA timezone"),
-  CHECKIN_CRON: z.string().default("17 9 * * *").refine(value => value.trim().split(/\s+/).length === 5 && cron.validate(value), "CHECKIN_CRON must be a valid five-field cron expression"),
+  CHECKIN_CRON: z.string().default("10 8 * * *").refine(value => value.trim().split(/\s+/).length === 5 && cron.validate(value), "CHECKIN_CRON must be a valid five-field cron expression"),
   TRUST_PROXY: z.coerce.number().int().min(0).max(2).default(1),
   DATA_DIR: z.string().default("./data")
 });
